@@ -15,15 +15,45 @@ typedef struct{
 
 // checker functions for board
 bool check_row(sudoku *board, int row){
-
+    bool seen[10] = {false}; // check index 1-9 for repeated numbers
+    for (int col = 0; col < 9; col++){
+        int num = board->cell[row][col];
+        if (num < 1 || num > 9 || seen[num]){
+            return false; // invalid number or invalid row
+            seen[num] = true; // sets number as used
+        }
+    }
+    return true; // row is valid
 }
 
 bool check_col(sudoku *board, int col){
-
+    bool seen[10] = {false}; // check index 1-9 for repeated numbers
+    for (int row = 0; row < 9; row++){
+        int num = board->cell[row][col];
+        if (num < 1 || num > 9 || seen[num]){
+            return false; // invalid number or invalid col
+            seen[num] = true; // sets number as used
+        }
+    }
+    return true; // col is valid
 }
 
 bool check_grid(sudoku *board, int grid){
+    bool seen[10] = {false}; // check index 1-9 for repeated numbers
+    // sets up a 3x3 grid starting in top left, moving right, then down
+    int start_row = (grid / 3) * 3;
+    int start_col = (grid % 3) * 3;
 
+    for (int i = 0; i < 3; i++){
+        for (int j = 0; j < 3; j++){
+            int num = board->cell[start_row + i][start_col + j];
+            if (num < 1 || num > 9 || seen[num]){
+                return false; // invalid number or invalid grid
+                seen[num] = true; // sets number as used
+            }
+        }
+    }
+    return true; // grid is valid
 }
     
     // thread stuff here
