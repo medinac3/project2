@@ -3,9 +3,10 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <time.h>
 
 // global variable to determine mode of operation, default is single thread
-int mode_select = 1;
+int num_threads = 1;
 
 // defines the layout of the sudoku board in 9x9 array
 typedef struct{
@@ -66,6 +67,7 @@ bool check_grid(const sudoku *board, int grid){
 
 void* work(void* param){
       // thread stuff here
+
 }
 
 // loads the board from input.txt, is hardcoded
@@ -93,7 +95,9 @@ int load_board(sudoku *board){
 int main(int argc, char** argv){
 
     sudoku test_board;
-    mode_select = atoi(argv[1]);
+    num_threads = atoi(argv[1]);
+    bool valid = true;
+    time_t begin = time(NULL);
 
     // loads the board before checks are run
     if (load_board(&test_board) != 0){
@@ -103,8 +107,8 @@ int main(int argc, char** argv){
     printf("BOARD STATE IN input.txt:\n");
     print_board(&test_board);
 
-    if (mode_select == 1){
-        bool valid = true;
+    if (num_threads == 1){
+       
         // all validation can be done in one loop due to single threading
         // will need to break up into multi loops for multithreading
         for (int i = 0; i < 9; i++){
@@ -112,13 +116,11 @@ int main(int argc, char** argv){
                 !check_col(&test_board, i) ||
                 !check_grid(&test_board, i)){
                     valid = false;
-                    break;
+                    printf("SOLUTION: NO (%f seconds)\n", (double)(time(NULL) - begin));
+                    return 0;
                 }
         }
-        printf("SOLUTION: %s\n", valid ? "YES" : "NO");
+        printf("SOLUTION: YES (%f seconds)\n", (double)(time(NULL) - begin));
     }
-    else {
-        // multithread mode goes here
-    }
-
+    return 0;
 }
