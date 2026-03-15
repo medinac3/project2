@@ -1,0 +1,64 @@
+# This file must be run in a jupyter notebook environment that has seaborn and matplotlib installed.
+# I ran it on the elsa cluster on a notebook using Baker Lab Tools (Jupyter) 
+
+import re
+import os
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy import stats
+
+def analyze_performance():
+    # 1. Setup the Path correctly
+    script_dir = os.getcwd()
+    script_dir += '/project 2/'
+    filename = os.path.join(script_dir, 'timing_results.txt')
+
+    
+    data = [] 
+    current_version = None
+
+    try:
+        with open(filename, 'r') as f:
+            for line in f:
+                if "argument: 1" in line:
+                    current_version = "Single-threaded"
+                elif "argument: 2" in line:
+                    current_version = "Multi-threaded"
+                
+                time_match = re.search(r"real\s+(?:0m)?(\d+\.\d+)", line)
+                
+                if time_match and current_version:
+                    data.append({"Version": current_version, "Time": float(time_match.group(1))})
+        
+        df = pd.DataFrame(data)
+        
+        if df.empty:
+            print(f"No data found. Check if the path is correct: {filename}")
+            return
+            
+    except FileNotFoundError:
+        print(f"Error: Could not find file at {filename}")
+        return
+
+    # 2. Statistics
+    single = df[df['Version'] == 'Single-threaded']['Time']
+    multi = df[df['Version'] == 'Multi-threaded']['Time']
+    
+    t_stat, p_val = stats.ttest_ind(single, multi, alternative='less') # 'less' because we want to see if multi is faster
+
+    print("--- Statistical Summary ---")
+    print(df.groupby('Version')['Time'].describe()[['mean', 'std']])
+    
+    # 3. Graphing
+    plt.figure(figsize=(10, 6))
+    sns.set_theme(style="whitegrid")
+    sns.boxplot(x="Version", y="Time", data=df, palette="Set2")
+    sns.stripplot(x="Version", y="Time", data=df, color=".3", alpha=0.5)
+    
+    plt.title("Performance Comparison: Single vs. Multi-threaded")
+    plt.ylabel("Execution Time (seconds)")
+    plt.show()
+
+if __name__ == "__main__":
+    analyze_performance()
